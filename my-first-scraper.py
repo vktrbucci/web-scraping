@@ -12,23 +12,24 @@
 import urllib.request
 from urllib.error import URLError, HTTPError, ContentTooShortError
 
-def download(url, num_retries=2):
+# Sem um user-agent definido, muitas requisições retornam 403 FORBIDDEN
+def download(url, num_retries, user_agent='wswp'):
     print('Downloading: ', url)
+    request = urllib.request.Request(url)
+    request.add_header('User-agent', user_agent)
     try:
-        html = urllib.request.urlopen(url).read()
+        html = urllib.request.urlopen(request).read()
         print('Url fetched')
     except (URLError, HTTPError, ContentTooShortError) as e:
-        print('Download error: ', e.reason, e.code)
+        print('Download error: ', e.reason)
         html = None
         # verifica se ainda existem tentativas
         if num_retries > 0:
-            print("Ainda temos tentativas")
             # verifica por erros HTTP 5xx
-            if hasattr(e, 'code') and 400 <= e.code < 600:
+            if hasattr(e, 'code') and 500 <= e.code < 600:
                 # faz novas tentativas recursivamente
                 return download(url, num_retries - 1)
     return html
 
-target_url = "http://httpstat.us/500"
-download(target_url)
-# retorna 403 FORBIDDEN pois não tem UserAgent
+target_url = 'https://www.fundamentus.com.br/detalhes.php?papel=WHRL4'
+download(target_url, 2)
