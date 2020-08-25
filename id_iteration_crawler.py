@@ -1,7 +1,8 @@
 import urllib.request
-import re
+import itertools
 
 from urllib.error import URLError, HTTPError, ContentTooShortError
+
 
 def download(url, num_retries=2, user_agent='wswp', charset='utf-8'):
     print('Downloading:', url)
@@ -22,14 +23,13 @@ def download(url, num_retries=2, user_agent='wswp', charset='utf-8'):
                 return download(url, num_retries - 1)
     return html
 
-def crawl_sitemap(url):
-    # download the sitemap file
-    sitemap = download(url)
-    # extract the sitemap links 
-    links = re.findall('<loc>(.*?)</loc>', sitemap)
-    # download each link
-    for link in links:
-        html = download(link)
-        # scrape html here
+def crawl_site(url):
+    for page in itertools.count(1):
+        page_url = '{}{}'.format(url, page)
+        html = download(page_url)
+        if html is None:
+            break
+        # success - scrape the result
 
-crawl_sitemap('http://example.webscraping.com/sitemap.xml')
+
+crawl_site('http://example.webscraping.com/places/default/view/-')
